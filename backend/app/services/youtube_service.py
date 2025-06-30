@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from app.config import (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI, GOOGLE_TOKEN_URI)
 
 def trocar_codigo_por_token(codigo_autorizacao: str):
@@ -127,6 +127,26 @@ def calcular_engajamento_medio(access_token: str, videos_ids: list[str]):
     return round(engajamento_total / total_videos_validos, 2)
 
 
-    
+def gerar_dados_relatorio_youtube(access_token: str):
+    hoje = date.today()
+    data_inicio = hoje - timedelta(days=hoje.weekday())
+    data_fim = data_inicio + timedelta(days=6)
 
+    canal_id, canal_nome = obter_id_do_canal(access_token)
+    stats = obter_estatisticas_canal(access_token)
+    seguidores_fim = stats["seguidores"]
     
+    videos = obter_publicacoes_no_periodo(access_token, dias=7)
+    shorts = filtrar_shorts(access_token, videos)
+    engajamento = calcular_engajamento_medio(access_token, shorts)
+    
+    return {
+        "rede social": "YouTube",
+        "canal_id": canal_id,
+        "canal_nome": canal_nome,
+        "data_inicio": data_inicio,
+        "data_fim": data_fim,
+        "seguidores_fim": seguidores_fim,
+        "total_publicacoes": len(shorts),
+        "engajamento_medio": engajamento
+    }
