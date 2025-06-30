@@ -21,5 +21,5 @@ class RelatorioSocial(Base):
     seguidores_fim = Column(Integer, nullable=False)
     publicacoes = Column(Integer, nullable=False)
     alcance_total = Column(Integer, nullable=False)
-    engajamento = Column(Integer, nullable=False)
+    engajamento = Column(Float, nullable=False)
     origem = Column(Enum(OrigemDadosEnum), nullable=False)
