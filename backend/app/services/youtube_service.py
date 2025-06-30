@@ -93,4 +93,40 @@ def filtrar_shorts(access_token: str, videos_ids: list[str]):
 
     return shorts_ids
 
+def calcular_engajamento_medio(access_token: str, videos_ids: list[str]):
+    url = "https://www.googleapis.com/youtube/v3/videos"
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    engajamento_total = 0
+    total_videos_validos = 0
+
+    for i in range(0, len(videos_ids), 50):
+        lote = videos_ids[i:i+50]
+        params = {
+            "part": "statistics",
+            "id": ",".join(lote)
+        }
+
+        response = requests.get(url, headers=headers, params=params)
+        dados = response.json()
+
+        for item in dados.get("items", []):
+            stats = item["statistics"]
+            views = int(stats.get("viewCount", 0))
+            likes = int(stats.get("likeCount", 0))
+            comentarios = int(stats.get("commentCount", 0))
+
+            if views > 0:
+                engajamento = ((likes + comentarios) / views) * 100
+                engajamento_total += engajamento
+                total_videos_validos += 1
+    
+    if total_videos_validos == 0:
+        return 0
+    
+    return round(engajamento_total / total_videos_validos, 2)
+
+
+    
+
     
