@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer,  Float, Date, Enum
+from sqlalchemy import Column, String, Integer,  Float, Date, Enum, DateTime
+from datetime import datetime, UTC
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 import enum
@@ -23,3 +24,10 @@ class RelatorioSocial(Base):
     alcance_total = Column(Integer, nullable=False)
     engajamento = Column(Float, nullable=False)
     origem = Column(Enum(OrigemDadosEnum), nullable=False)
+
+class TokenSocial(Base):
+    __tablename__ = "tokens_sociais"
+
+    rede_social = Column(String, primary_key=True, index=True)
+    token = Column(String, nullable=False)
+    atualizado_em = Column(DateTime, default=datetime.now(UTC))

@@ -1,10 +1,32 @@
 from app.config import (IG_USER_ID, APP_SECRET_IG, USER_ACCESS_TOKEN_IG, APP_ID_IG)
+from app.database import SessionLocal, obter_token, salvar_token
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
+
+def get_token_instagram_valido() -> str | None:
+    db = SessionLocal()
+    token_salvo = obter_token(db, "instagram")
+
+    if not token_salvo:
+        novo_token = obter_token_longo_prazo()
+        
+        if novo_token:
+            salvar_token(db, "instagram", novo_token)
+
+        db.close()
+        return novo_token
+    
+    token_renovado = renovar_token_longo_prazo(token_salvo)
+    if token_renovado:
+        salvar_token(db, "instagram", token_renovado)
+        db.close()
+        return token_renovado
+    
+    db.close()
+    return token_salvo
 
 def obter_token_longo_prazo():
     url = "https://graph.facebook.com/v17.0/oauth/access_token"
-
     params = {
         "grant_type": "fb_exchange_token",
         "client_id": APP_ID_IG,
@@ -13,26 +35,48 @@ def obter_token_longo_prazo():
     }
 
     response = requests.get(url, params=params)
+    if response.status_code != 200:
+        print("Erro ao obter token longo:", response.status_code, response.text)
+        return None
+
     data = response.json()
-    long_access_token = data.get("access_token")
-    return long_access_token
+    return data.get("access_token")
+
+def renovar_token_longo_prazo(token_atual: str) -> str | None:
+    url = "https://graph.facebook.com/v17.0/oauth/access_token"
+
+    params = {
+        "grant_type": "fb_exchange_token",
+        "client_id": APP_ID_IG,
+        "client_secret": APP_SECRET_IG,
+        "fb_exchange_token": token_atual
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("access_token")
+    else:
+        print(f"Erro ao renovar token: {response.status_code} - {response.text}")
+        return None
 
 def obter_numero_seguidores(ig_user_id: str, access_token: str):
     url = f"https://graph.facebook.com/v17.0/{ig_user_id}"
-
     params = {
         "fields": "followers_count",
         "access_token": access_token,
     }
 
     response = requests.get(url, params=params)
+    if response.status_code != 200:
+        print("Erro ao obter seguidores:", response.status_code, response.text)
+        return None
+
     data = response.json()
-    followers_numb = data.get("followers_count")
-    return followers_numb
+    return data.get("followers_count")
 
 def obter_publicacoes_semana(ig_user_id: str, access_token: str, since: datetime, until: datetime):
     url = f"https://graph.facebook.com/v17.0/{ig_user_id}/media"
-
     params = {
         "fields": "id,caption,timestamp",
         "access_token": access_token,
@@ -40,13 +84,21 @@ def obter_publicacoes_semana(ig_user_id: str, access_token: str, since: datetime
     }
 
     response = requests.get(url, params=params)
-    media = response.json().get("data", [])
+    if response.status_code != 200:
+        print("Erro ao obter publicações:", response.status_code, response.text)
+        return []
 
+    data = response.json()
+    media = data.get("data", [])
     media_filtrada = []
+
     for m in media:
-        timestamp = datetime.fromisoformat(m["timestamp"].replace("Z", "+00:00"))
-        if since <= timestamp <= until:
-            media_filtrada.append(m)
+        try:
+            timestamp = datetime.fromisoformat(m["timestamp"].replace("Z", "+00:00"))
+            if since <= timestamp <= until:
+                media_filtrada.append(m)
+        except Exception as e:
+            print(f"Erro ao processar timestamp: {e}")
 
     return media_filtrada
 
@@ -58,18 +110,23 @@ def obter_alcance(media: list, access_token: str) -> int:
 
     for post in media:
         url = f"https://graph.facebook.com/v17.0/{post['id']}/insights"
-
         params = {
             "metric": "reach",
             "access_token": access_token,
         }
 
         response = requests.get(url, params=params)
-        insights = response.json().get("data", [])
+        if response.status_code != 200:
+            print(f"Erro ao obter alcance de {post['id']}: {response.status_code} {response.text}")
+            continue
 
+        insights = response.json().get("data", [])
         for item in insights:
             if item["name"] == "reach":
-                total_reach += item["values"][0]["value"]
+                try:
+                    total_reach += item["values"][0]["value"]
+                except (IndexError, KeyError) as e:
+                    print(f"Erro ao ler valor de alcance: {e}")
 
     return total_reach
 
@@ -78,30 +135,38 @@ def obter_engajamento_total(media: list, access_token: str):
 
     for post in media:
         url = f"https://graph.facebook.com/v17.0/{post['id']}/insights"
-
         params = {
             "metric": "engagement",
             "access_token": access_token
         }
 
         response = requests.get(url, params=params)
-        insights = response.json().get("data", [])
+        if response.status_code != 200:
+            print(f"Erro ao obter engajamento de {post['id']}: {response.status_code} {response.text}")
+            continue
 
+        insights = response.json().get("data", [])
         for item in insights:
             if item["name"] == "engagement":
-                total_engagement += item["values"][0]["value"]
+                try:
+                    total_engagement += item["values"][0]["value"]
+                except (IndexError, KeyError) as e:
+                    print(f"Erro ao ler valor de engajamento: {e}")
     
     return total_engagement
 
 def obter_engajamento_medio(engajamento_total, alcance_total):
     return (engajamento_total / alcance_total * 100) if alcance_total > 0 else 0
 
-#Todas as informações reunidas
+# Função principal: apenas orquestra as chamadas
 def obter_relatorio_semanal_instagram():
-    access_token = obter_token_longo_prazo()
-    ig_user_id = IG_USER_ID
+    access_token = get_token_instagram_valido()
 
-    today = datetime.utcnow()
+    if not access_token:
+        return {"erro": "Não foi possível obter token válido"}
+
+    ig_user_id = IG_USER_ID
+    today = datetime.now(UTC)
     start_week = today - timedelta(days=7)
 
     seguidores_inicio = obter_numero_seguidores(ig_user_id, access_token)
@@ -115,13 +180,10 @@ def obter_relatorio_semanal_instagram():
     return {
         "rede_social": "Instagram",
         "seguidores_inicio": seguidores_inicio,
-        "seguidores_fim":  seguidores_fim,
+        "seguidores_fim": seguidores_fim,
         "publicacoes": numero_publicacoes,
         "alcance_total": alcance_total,
         "engajamento_medio": round(engajamento_medio, 2)
     }
 
-
-
-
-
+print(obter_relatorio_semanal_instagram())
