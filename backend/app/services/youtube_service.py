@@ -63,7 +63,7 @@ def obter_publicacoes_no_periodo(access_token: str, dias: int = 7):
         "publishedBefore": data_final.isoformat("T") + "Z"
     }
 
-    response = requests.get(url, headers=headers, params=params),
+    response = requests.get(url, headers=headers, params=params)
     dados = response.json()
 
     ids_videos = [item["id"]["videoId"] for item in dados.get("items", [])]
