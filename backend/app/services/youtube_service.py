@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from app.config import (
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -122,7 +122,7 @@ def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
     return round(total_engajamento / total_validos, 2) if total_validos > 0 else 0
 
 def obter_relatorio_semanal_youtube(access_token: str):
-    today = datetime.utcnow()
+    today = datetime.now(UTC)
     start_week = today - timedelta(days=7)
 
     canal_id, canal_nome = obter_id_e_nome_canal(access_token)
