@@ -9,8 +9,7 @@ GOOGLE_REDIRECT_URI = "http://localhost:3000/oauth/callback"
 GOOGLE_ORIGIN = "http://localhost:3000"
 
 
-# app/config.py
-
+#Instagram graph API
 IG_USER_ID = "17841414180504642"
 APP_ID_IG = "3992701204208547"
 APP_SECRET_IG = "30e936461d07f098c86c5c5a0ca41c4e"
