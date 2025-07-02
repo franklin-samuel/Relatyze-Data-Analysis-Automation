@@ -1,123 +1,120 @@
+# app/services/facebook_service.py
 from app.config import FB_PAGE_ID
 import requests
 from datetime import datetime, timedelta, UTC
 from app.services.auth_meta_service import get_token_valido
 from app.database import SessionLocal, obter_ultimo_numero_antes, salvar_numero_seguidores
 
-def obter_nome_e_id_pagina(access_token: str):
-    url = f"https://graph.facebook.com/v17.0/{FB_PAGE_ID}"
+def obter_token_pagina(access_token_usuario: str, page_id: str) -> str | None:
+    url = "https://graph.facebook.com/v17.0/me/accounts"
+    params = {"access_token": access_token_usuario}
+    resp = requests.get(url, params=params)
+    if resp.status_code != 200:
+        print("Erro ao obter token da página:", resp.status_code, resp.text)
+        return None
+    for pg in resp.json().get("data", []):
+        if pg.get("id") == page_id:
+            return pg.get("access_token")
+    print("Página não encontrada nos accounts.")
+    return None
+
+def obter_nome_pagina(page_id: str, token_pagina: str) -> str | None:
+    url = f"https://graph.facebook.com/v17.0/{page_id}"
     params = {
-        "fields": "name,id",
-        "access_token": access_token
+        "fields": "name",
+        "access_token": token_pagina
     }
 
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print("Erro ao obter nome da página:", response.status_code, response.text)
-        return None, None
+    resp = requests.get(url, params=params)
+    if resp.status_code != 200:
+        print("Erro ao obter nome da página:", resp.status_code, resp.text)
+        return None
 
-    data = response.json()
-    return data.get("id"), data.get("name")
+    return resp.json().get("name")
 
-def obter_numero_seguidores(access_token: str):
-    url = f"https://graph.facebook.com/v17.0/{FB_PAGE_ID}/insights/page_fans"
-
-    params = {
-        "access_token": access_token
-    }
-
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print("Erro ao obter seguidores:", response.status_code, response.text)
-        return 0
-
-    data = response.json()
+def obter_numero_seguidores(page_id: str, token_pagina: str):
+    url = f"https://graph.facebook.com/v17.0/{page_id}/insights/page_fans"
+    resp = requests.get(url, params={"access_token": token_pagina})
+    if resp.status_code != 200:
+        print("Erro ao obter seguidores:", resp.status_code, resp.text)
+        return None
+    data = resp.json().get("data", [])
     try:
-        return data["data"][0]["values"][-1]["value"]
+        return data[0]["values"][-1]["value"]
     except:
-        return 0
-    
-def obter_publicacoes_semana(access_token: str, since: datetime, until: datetime):
-    url = f"https://graph.facebook.com/v17.0/{FB_PAGE_ID}/posts"
+        return None
 
-    params = {
-        "access_token": access_token,
+def obter_publicacoes_semana(page_id: str, token_pagina: str, since: datetime, until: datetime):
+    url = f"https://graph.facebook.com/v17.0/{page_id}/posts"
+    resp = requests.get(url, params={
+        "access_token": token_pagina,
         "since": int(since.timestamp()),
         "until": int(until.timestamp()),
         "limit": 100
-    }
-
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print("Erro ao obter publicações:", response.status_code, response.text)
+    })
+    if resp.status_code != 200:
+        print("Erro ao obter posts:", resp.status_code, resp.text)
         return []
-    
-    data = response.json()
-    publicacoes = data.get("data", [])
-    return publicacoes
+    return resp.json().get("data", [])
 
-def obter_numero_publicacoes_semana(publicacoes):
-    return len(publicacoes)
-
-def obter_alcance_total(posts: list, access_token: str):
-    total_reach = 0
+def obter_alcance_total(posts: list, token_pagina: str):
+    total = 0
     for post in posts:
-        url = f"https://graph.facebook.com/v17.0/{post['id']}/insights"
+        resp = requests.get(
+            f"https://graph.facebook.com/v17.0/{post['id']}/insights",
+            params={"metric": "post_impressions_unique", "access_token": token_pagina}
+        )
+        if resp.status_code == 200:
+            for item in resp.json().get("data", []):
+                if item["name"] == "post_impressions_unique":
+                    total += item["values"][0].get("value", 0)
+    return total
 
-        params = {
-            "metric": "post_impressions_unique",
-            "access_token": access_token,
-        }
-
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            continue
-
-        insights = response.json().get("data", [])
-        for item in insights:
-            if item["name"] == "post_impressions_unique":
-                try:
-                    total_reach += item["values"][0]["value"]
-                except:
-                    pass
-    return total_reach
-
-def obter_engajamento_total(posts: list, access_token: str):
-    total_engagement = 0
+def obter_engajamento_total(posts: list, token_pagina: str):
+    total = 0
     for post in posts:
-        url = f"https://graph.facebook.com/v17.0/{post['id']}/insights"
-
-        params = {
-            "metric": "post_engaged_users",
-            "access_token": access_token,
-        }
-
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            continue
-
-        insights = response.json().get("data", [])
-        for item in insights:
-            if item["name"] == "post_engaged_users":
-                try:
-                    total_engagement += item["values"][0]["value"]
-                except:
-                    pass
-
-        return total_engagement
-
-def calcular_engajamento_medio(engajamento_total: int, alcance_total: int):
-    return (engajamento_total / alcance_total * 100) if alcance_total > 0 else 0
+        resp = requests.get(
+            f"https://graph.facebook.com/v17.0/{post['id']}/insights",
+            params={"metric": "post_engaged_users", "access_token": token_pagina}
+        )
+        if resp.status_code == 200:
+            for item in resp.json().get("data", []):
+                if item["name"] == "post_engaged_users":
+                    total += item["values"][0].get("value", 0)
+    return total
 
 def obter_relatorio_semanal_facebook():
     db = SessionLocal()
-    access_token = get_token_valido()
-    page_id, page_nome = obter_nome_e_id_pagina(access_token) 
+    usuario_token = get_token_valido()
+    if not usuario_token:
+        return {"erro": "Não foi possível obter token de usuário"}
 
-    
+    page_token = obter_token_pagina(usuario_token, FB_PAGE_ID)
+    if not page_token:
+        return {"erro": "Não foi possível obter token da página"}
 
-    if not access_token:
-        return {"erro": "Não foi possível obter token válido"}
-    
+    page_id = FB_PAGE_ID
+    page_nome = obter_nome_pagina(page_id, page_token)
     today = datetime.now(UTC)
-    start_week = today - timedelta(days=7)
+    last_week = today - timedelta(days=7)
+
+    seguidores_inicio = obter_ultimo_numero_antes(db, "facebook", page_id, last_week)
+    seguidores_fim = obter_numero_seguidores(page_id, page_token)
+    if seguidores_fim is not None:
+        salvar_numero_seguidores(db, "facebook", page_id, page_nome, seguidores_fim, today)
+
+    posts = obter_publicacoes_semana(page_id, page_token, last_week, today)
+    alcance = obter_alcance_total(posts, page_token)
+    engajamento = obter_engajamento_total(posts, page_token)
+    engajamento_medio = (engajamento / alcance * 100) if alcance else 0
+
+    return {
+        "rede_social": "Facebook",
+        "seguidores_inicio": seguidores_inicio,
+        "seguidores_fim": seguidores_fim,
+        "publicacoes": len(posts),
+        "alcance_total": alcance,
+        "engajamento_medio": round(engajamento_medio, 2)
+    }
+
+print(obter_relatorio_semanal_facebook())
