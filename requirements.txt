@@ -1,0 +1,8 @@
+sqlalchemy
+datetime
+facebook-sdk
+requests
+json
+instagram-sdk
+enum
+uuid

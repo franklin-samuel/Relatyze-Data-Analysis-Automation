@@ -43,6 +43,9 @@ def deletar_relatorio(db: Session, relatorio_id: uuid.UUID):
 
 #-----|Banco de dados -> Tokens|-----
 def salvar_token(db: Session, rede_social: str, token: str):
+    token = token.encode("utf-8", errors="ignore").decode("utf-8")
+    rede_social = rede_social.encode("utf-8", errors="ignore").decode("utf-8")
+
     tokens_existente = db.query(TokenSocial).filter(TokenSocial.rede_social == rede_social).first()
 
     if tokens_existente:

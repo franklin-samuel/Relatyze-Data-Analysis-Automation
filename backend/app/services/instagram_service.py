@@ -1,64 +1,7 @@
-from app.config import (IG_USER_ID, APP_SECRET_IG, USER_ACCESS_TOKEN_IG, APP_ID_IG)
-from app.database import SessionLocal, obter_token, salvar_token
+from app.config import (IG_USER_ID, APP_SECRET, USER_ACCESS_TOKEN, APP_ID)
+from app.services.auth_meta_service import get_token_valido
 import requests
 from datetime import datetime, timedelta, UTC
-
-def get_token_instagram_valido() -> str | None:
-    db = SessionLocal()
-    token_salvo = obter_token(db, "instagram")
-
-    if not token_salvo:
-        novo_token = obter_token_longo_prazo()
-        
-        if novo_token:
-            salvar_token(db, "instagram", novo_token)
-
-        db.close()
-        return novo_token
-    
-    token_renovado = renovar_token_longo_prazo(token_salvo)
-    if token_renovado:
-        salvar_token(db, "instagram", token_renovado)
-        db.close()
-        return token_renovado
-    
-    db.close()
-    return token_salvo
-
-def obter_token_longo_prazo():
-    url = "https://graph.facebook.com/v17.0/oauth/access_token"
-    params = {
-        "grant_type": "fb_exchange_token",
-        "client_id": APP_ID_IG,
-        "client_secret": APP_SECRET_IG,
-        "fb_exchange_token": USER_ACCESS_TOKEN_IG,
-    }
-
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print("Erro ao obter token longo:", response.status_code, response.text)
-        return None
-
-    data = response.json()
-    return data.get("access_token")
-
-def renovar_token_longo_prazo(token_atual: str) -> str | None:
-    url = "https://graph.facebook.com/v17.0/oauth/access_token"
-
-    params = {
-        "grant_type": "fb_exchange_token",
-        "client_id": APP_ID_IG,
-        "client_secret": APP_SECRET_IG,
-        "fb_exchange_token": token_atual
-    }
-
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        data = response.json()
-        return data.get("access_token")
-    else:
-        print(f"Erro ao renovar token: {response.status_code} - {response.text}")
-        return None
 
 def obter_numero_seguidores(ig_user_id: str, access_token: str):
     url = f"https://graph.facebook.com/v17.0/{ig_user_id}"
@@ -160,7 +103,7 @@ def obter_engajamento_medio(engajamento_total, alcance_total):
 
 # Função principal: apenas orquestra as chamadas
 def obter_relatorio_semanal_instagram():
-    access_token = get_token_instagram_valido()
+    access_token = get_token_valido()
 
     if not access_token:
         return {"erro": "Não foi possível obter token válido"}
