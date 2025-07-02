@@ -5,20 +5,20 @@ from datetime import datetime, timedelta, UTC
 
 def get_token_valido() -> str | None:
     db = SessionLocal()
-    token_salvo = obter_token(db, "instagram")
+    token_salvo = obter_token(db, "meta")
 
     if not token_salvo:
         novo_token = obter_token_longo_prazo()
         
         if novo_token:
-            salvar_token(db, "instagram", novo_token)
+            salvar_token(db, "meta", novo_token)
 
         db.close()
         return novo_token
     
     token_renovado = renovar_token_longo_prazo(token_salvo)
     if token_renovado:
-        salvar_token(db, "instagram", token_renovado)
+        salvar_token(db, "meta", token_renovado)
         db.close()
         return token_renovado
     

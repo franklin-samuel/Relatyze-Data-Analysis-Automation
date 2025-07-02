@@ -1,4 +1,4 @@
-from app.config import (IG_USER_ID, APP_SECRET, USER_ACCESS_TOKEN, APP_ID)
+from app.config import IG_USER_ID
 from app.services.auth_meta_service import get_token_valido
 import requests
 from datetime import datetime, timedelta, UTC
@@ -129,4 +129,5 @@ def obter_relatorio_semanal_instagram():
         "engajamento_medio": round(engajamento_medio, 2)
     }
 
-print(obter_relatorio_semanal_instagram())
+if __name__ == "__main__":
+    print(obter_relatorio_semanal_instagram())
