@@ -2,6 +2,24 @@ from app.config import IG_USER_ID
 from app.services.auth_meta_service import get_token_valido
 import requests
 from datetime import datetime, timedelta, UTC
+from app.database import SessionLocal, salvar_numero_seguidores, obter_ultimo_numero_antes
+
+def obter_nome_id_perfil(ig_user_id: str, access_token: str) -> tuple[str, str] | tuple[None, None]:
+    url = f"https://graph.facebook.com/v17.0/{ig_user_id}"
+    params = {
+        "fields": "id,name",
+        "access_token": access_token
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        print("Erro ao obter nome do perfil:", response.status_code, response.text)
+        return None, None
+
+    data = response.json()
+    return data.get("id"), data.get("name")
+
+
 
 def obter_numero_seguidores(ig_user_id: str, access_token: str):
     url = f"https://graph.facebook.com/v17.0/{ig_user_id}"
@@ -101,21 +119,29 @@ def obter_engajamento_total(media: list, access_token: str):
 def obter_engajamento_medio(engajamento_total, alcance_total):
     return (engajamento_total / alcance_total * 100) if alcance_total > 0 else 0
 
-# Função principal: apenas orquestra as chamadas
+# Função principal
 def obter_relatorio_semanal_instagram():
+    db = SessionLocal()
     access_token = get_token_valido()
 
     if not access_token:
         return {"erro": "Não foi possível obter token válido"}
-
+    
     ig_user_id = IG_USER_ID
+    perfil_id, perfil_nome = obter_nome_id_perfil(ig_user_id, access_token)
     today = datetime.now(UTC)
     start_week = today - timedelta(days=7)
 
-    seguidores_inicio = obter_numero_seguidores(ig_user_id, access_token)
+    seguidores_inicio = obter_ultimo_numero_antes(db, "instagram", perfil_id, start_week)
+
+    seguidores_fim = obter_numero_seguidores(ig_user_id, access_token)
+
+    if seguidores_fim is not None:
+        salvar_numero_seguidores(db, "instagram", perfil_id, perfil_nome, seguidores_fim, today)
+
+    
     media = obter_publicacoes_semana(ig_user_id, access_token, start_week, today)
     numero_publicacoes = obter_numero_publicacoes_semana(media)
-    seguidores_fim = obter_numero_seguidores(ig_user_id, access_token)
     alcance_total = obter_alcance(media, access_token)
     engajamento_total = obter_engajamento_total(media, access_token)
     engajamento_medio = obter_engajamento_medio(engajamento_total, alcance_total)
@@ -129,5 +155,4 @@ def obter_relatorio_semanal_instagram():
         "engajamento_medio": round(engajamento_medio, 2)
     }
 
-if __name__ == "__main__":
-    print(obter_relatorio_semanal_instagram())
+obter_relatorio_semanal_instagram()

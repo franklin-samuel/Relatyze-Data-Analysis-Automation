@@ -6,6 +6,7 @@ from app.config import (
     GOOGLE_REDIRECT_URI,
     GOOGLE_TOKEN_URI,
 )
+from app.database import salvar_numero_seguidores, obter_ultimo_numero_antes, SessionLocal
 
 def trocar_codigo_por_token(codigo_autorizacao: str):
     payload = {
@@ -107,7 +108,7 @@ def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
 
         response = requests.get(url, headers=headers, params=params)
         dados = response.json()
-
+        
         for item in dados.get("items", []):
             stats = item["statistics"]
             views = int(stats.get("viewCount", 0))
@@ -124,13 +125,19 @@ def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
 def obter_relatorio_semanal_youtube(access_token: str):
     today = datetime.now(UTC)
     start_week = today - timedelta(days=7)
-
+    db = SessionLocal()
     canal_id, canal_nome = obter_id_e_nome_canal(access_token)
-    seguidores_inicio = obter_numero_seguidores(access_token)
+
+    seguidores_fim = obter_numero_seguidores(access_token)
+
+    seguidores_inicio = obter_ultimo_numero_antes(db, "youtube", canal_id, start_week)
+
+    if seguidores_fim is not None:
+        salvar_numero_seguidores(db, "youtube", canal_id, canal_nome, seguidores_fim, today)
+
     publicacoes = obter_publicacoes_semana(access_token, start_week, today)
     numero_publicacoes = obter_numero_publicacoes_semana(publicacoes)
     shorts_ids = filtrar_shorts(access_token, publicacoes)
-    seguidores_fim = obter_numero_seguidores(access_token)
     engajamento_medio = obter_engajamento_medio(access_token, shorts_ids)
 
     return {
