@@ -31,3 +31,14 @@ class TokenSocial(Base):
     rede_social = Column(String, primary_key=True, index=True)
     token = Column(String, nullable=False)
     atualizado_em = Column(DateTime, default=datetime.now(UTC))
+
+class HistoricoSeguidores(Base):
+    __tablename__ = "historico_seguidores"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    rede_social = Column(String, nullable=False)
+    perfil_id = Column(String, nullable=False)
+    perfil_nome = Column(String, nullable=True)
+    quantidade = Column(Integer, nullable=False)
+    coletado_em = Column(DateTime(timezone=True), nullable=False)
+

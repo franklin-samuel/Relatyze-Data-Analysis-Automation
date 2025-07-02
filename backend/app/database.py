@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from app.models import RelatorioSocial, TokenSocial, Base
+from app.models import RelatorioSocial, TokenSocial, HistoricoSeguidores, Base
 from datetime import datetime, UTC
 import uuid
 
@@ -63,5 +63,43 @@ def salvar_token(db: Session, rede_social: str, token: str):
 def obter_token(db: Session, rede_social: str) -> str | None:
     token = db.query(TokenSocial).filter(TokenSocial.rede_social == rede_social).first()
     return token.token if token else None
+
+#-----|Banco de dados -> Historico de seguidores|-----
+def salvar_numero_seguidores(
+        db: Session,
+        rede_social: str,
+        perfil_id: str,
+        perfil_nome: str,
+        quantidade: int,
+        coletado_em: datetime
+):
+    registro = HistoricoSeguidores(
+        rede_social=rede_social,
+        perfil_id=perfil_id,
+        perfil_nome=perfil_nome,
+        quantidade=quantidade,
+        coletado_em=coletado_em
+    )
+    db.add(registro)
+    db.commit()
+
+def obter_ultimo_numero_antes(
+        db: Session,
+        rede_social: str,
+        perfil_id: str,
+        data_limite: datetime,
+) -> int | None:
+    resultado = (
+        db.query(HistoricoSeguidores)
+        .filter(
+            HistoricoSeguidores.rede_social == rede_social,
+            HistoricoSeguidores.perfil_id == perfil_id,
+            HistoricoSeguidores.coletado_em <= data_limite
+        )
+        .order_by(HistoricoSeguidores.coletado_em.desc())
+        .first()
+    )
+
+    return resultado.quantidade if resultado else None
     
     

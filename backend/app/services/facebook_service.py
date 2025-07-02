@@ -1,4 +1,4 @@
-from app.config import (FB_PAGE_ID, APP_SECRET, USER_ACCESS_TOKEN, APP_ID)
+from app.config import FB_PAGE_ID
 import requests
 from datetime import datetime, timedelta, UTC
 
@@ -64,3 +64,32 @@ def obter_alcance_total(posts: list, access_token: str):
                 except:
                     pass
     return total_reach
+
+def obter_engajamento_total(posts: list, access_token: str):
+    total_engagement = 0
+    for post in posts:
+        url = f"https://graph.facebook.com/v17.0/{post['id']}/insights"
+
+        params = {
+            "metric": "post_engaged_users",
+            "access_token": access_token,
+        }
+
+        response = requests.get(url, params=params)
+        if response.status_code != 200:
+            continue
+
+        insights = response.json().get("data", [])
+        for item in insights:
+            if item["name"] == "post_engaged_users":
+                try:
+                    total_engagement += item["values"][0]["value"]
+                except:
+                    pass
+
+        return total_engagement
+
+def calcular_engajamento_medio(engajamento_total: int, alcance_total: int):
+    return (engajamento_total / alcance_total * 100) if alcance_total > 0 else 0
+
+                
