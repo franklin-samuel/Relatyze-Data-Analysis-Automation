@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.app.api.endpoints import relatorio_geral, relatorio_individual
+from app.api.endpoints import relatorio_geral, relatorio_individual
 
 app = FastAPI()
 
