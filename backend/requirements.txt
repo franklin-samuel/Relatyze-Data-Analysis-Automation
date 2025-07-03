@@ -9,3 +9,4 @@ pydantic
 python-dateutil
 uuid
 rich
+python-dotenv
