@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from app.api.endpoints import relatorios
+from backend.app.api.endpoints import relatorio_geral
 
 app = FastAPI()
 
-app.include_router(relatorios.router)
+app.include_router(relatorio_geral.router)
