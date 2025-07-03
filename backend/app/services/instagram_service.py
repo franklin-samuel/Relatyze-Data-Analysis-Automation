@@ -154,5 +154,3 @@ def obter_relatorio_semanal_instagram():
         "alcance_total": alcance_total,
         "engajamento_medio": round(engajamento_medio, 2)
     }
-
-obter_relatorio_semanal_instagram()
