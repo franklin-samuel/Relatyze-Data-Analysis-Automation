@@ -3,11 +3,8 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.models import RelatorioSocial, TokenSocial, HistoricoSeguidores, Base
 from datetime import datetime, UTC
 import uuid
-import os
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL não definida no ambiente!")
+DATABASE_URL = "postgresql://postgres:Kkkrsrsrs28?@localhost:5432/relatorios_db"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
