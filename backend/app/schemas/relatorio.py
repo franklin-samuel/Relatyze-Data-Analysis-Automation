@@ -22,3 +22,14 @@ class RelatorioSocialOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class RelatorioSocialCreate(BaseModel):
+    rede_social: str
+    data_inicio: date
+    data_fim: date
+    seguidores_inicio: int
+    seguidores_fim: int
+    publicacoes: int
+    alcance_total: int
+    engajamento: float
+    origem: OrigemDadosEnum

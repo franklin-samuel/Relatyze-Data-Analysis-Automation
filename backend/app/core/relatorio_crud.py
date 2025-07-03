@@ -8,9 +8,9 @@ def obter_todos_relatorios():
     db.close()
     return relatorios
 
-def obter_relatorio_por_id():
+def obter_relatorio_por_id(relatorio_id: uuid.UUID):
     db = SessionLocal()
-    relatorio = buscar_relatorio_por_id(db, relatorio)
+    relatorio = buscar_relatorio_por_id(db, relatorio_id)
     db.close()
     return relatorio
 
