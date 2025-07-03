@@ -6,3 +6,5 @@ json
 instagram-sdk
 enum
 uuid
+uvicorn
+fastapi
