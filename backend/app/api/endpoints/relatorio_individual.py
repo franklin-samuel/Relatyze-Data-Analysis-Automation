@@ -21,8 +21,16 @@ def obter_relatorio(relatorio_id: UUID):
 def criar_relatorio(relatorio: RelatorioSocial):
     return relatorio_crud.criar_novo_relatorio(relatorio.dict())
 
-@router.put("relatorios/{relatorio_id}", response_model=RelatorioSocial)
+@router.put("/relatorios/{relatorio_id}", response_model=RelatorioSocial)
 def atualizar_relatorio(relatorio_id: UUID, dados: RelatorioSocial):
     relatorio_atualizado = relatorio_crud.atualizar_relatorio_existente(relatorio_id, dados.dict())
     if not relatorio_atualizado:
         raise HTTPException(status_code=404, detail="Relátorio não encontrado para atualizar")
+    return relatorio_atualizado
+
+@router.delete("/relatorios/{relatorio_id}")
+def deletar_relatorio(relatorio_id: UUID):
+    sucesso = relatorio_crud.deletar_relatorio_existente(relatorio_id)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Relatório não encontrado para excluir")
+    return {"mensagem": "Relatório excluído com sucesso"}
