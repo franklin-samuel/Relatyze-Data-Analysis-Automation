@@ -6,7 +6,14 @@ from app.config import (
     GOOGLE_REDIRECT_URI,
     GOOGLE_TOKEN_URI,
 )
-from app.database import salvar_numero_seguidores, obter_ultimo_numero_antes, SessionLocal
+from app.database import (
+    salvar_token,
+    obter_token,
+    salvar_numero_seguidores,
+    obter_ultimo_numero_antes,
+    SessionLocal,
+)
+
 
 def trocar_codigo_por_token(codigo_autorizacao: str):
     payload = {
@@ -18,7 +25,15 @@ def trocar_codigo_por_token(codigo_autorizacao: str):
     }
 
     response = requests.post(GOOGLE_TOKEN_URI, data=payload)
-    return response.json()
+    dados = response.json()
+
+    if "access_token" in dados:
+        db = SessionLocal()
+        salvar_token(db, "youtube", dados["access_token"])
+        db.close()
+
+    return dados
+
 
 def obter_id_e_nome_canal(access_token: str):
     url = "https://www.googleapis.com/youtube/v3/channels"
@@ -34,6 +49,7 @@ def obter_id_e_nome_canal(access_token: str):
     canal = dados["items"][0]
     return canal["id"], canal["snippet"]["title"]
 
+
 def obter_numero_seguidores(access_token: str):
     url = "https://www.googleapis.com/youtube/v3/channels"
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -47,6 +63,7 @@ def obter_numero_seguidores(access_token: str):
 
     estatisticas = dados["items"][0]["statistics"]
     return int(estatisticas.get("subscriberCount", 0))
+
 
 def obter_publicacoes_semana(access_token: str, since: datetime, until: datetime):
     url = "https://www.googleapis.com/youtube/v3/search"
@@ -66,8 +83,10 @@ def obter_publicacoes_semana(access_token: str, since: datetime, until: datetime
 
     return [item["id"]["videoId"] for item in dados.get("items", [])]
 
+
 def obter_numero_publicacoes_semana(publicacoes: list):
     return len(publicacoes)
+
 
 def filtrar_shorts(access_token: str, videos_ids: list[str]):
     url = "https://www.googleapis.com/youtube/v3/videos"
@@ -92,6 +111,7 @@ def filtrar_shorts(access_token: str, videos_ids: list[str]):
 
     return shorts_ids
 
+
 def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
     url = "https://www.googleapis.com/youtube/v3/videos"
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -108,7 +128,7 @@ def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
 
         response = requests.get(url, headers=headers, params=params)
         dados = response.json()
-        
+
         for item in dados.get("items", []):
             stats = item["statistics"]
             views = int(stats.get("viewCount", 0))
@@ -122,14 +142,21 @@ def obter_engajamento_medio(access_token: str, videos_ids: list[str]):
 
     return round(total_engajamento / total_validos, 2) if total_validos > 0 else 0
 
-def obter_relatorio_semanal_youtube(access_token: str):
+
+def obter_relatorio_semanal_youtube():
+    db = SessionLocal()
+    access_token = obter_token(db, "youtube")
+    if not access_token:
+        return {"erro": "Token do YouTube não encontrado"}
+
     today = datetime.now(UTC)
     start_week = today - timedelta(days=7)
-    db = SessionLocal()
+
     canal_id, canal_nome = obter_id_e_nome_canal(access_token)
+    if not canal_id:
+        return {"erro": "Não foi possível obter canal do YouTube"}
 
     seguidores_fim = obter_numero_seguidores(access_token)
-
     seguidores_inicio = obter_ultimo_numero_antes(db, "youtube", canal_id, start_week)
 
     if seguidores_fim is not None:
