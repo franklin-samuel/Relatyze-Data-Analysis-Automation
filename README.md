@@ -1,6 +1,6 @@
 # 📊 Relatyze | Análise de Dados e Automação - Sistema de Relatórios Semanais
 
-https://relatyze-data-analysis-automation.onrender.com/docs (Versão inicial da API com apenas Youtube, Facebook e Instagram rodando na nuvem) -> Integrando com o frontend...
+LINK QUEBRADO!(por enquanto)  https://relatyze-data-analysis-automation.onrender.com/docs (Versão inicial da API com apenas Youtube, Facebook e Instagram rodando na nuvem) -> Integrando com o frontend...
 
 ## ✨ Visão Geral
 
