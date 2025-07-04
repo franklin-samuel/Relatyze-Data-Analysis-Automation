@@ -4,8 +4,8 @@
 
 Este sistema tem como objetivo automatizar a geração de relatórios semanais de desempenho de contas em redes sociais. O usuário poderá:
 
-- Integrar com APIs oficiais (Instagram, Facebook, YouTube)
-- Inserir dados manualmente (TikTok, Kwai, Threads)
+- Integrar com APIs oficiais (Instagram, Facebook, Threads, YouTube, TikTok)
+- Inserir dados manualmente (Kwai)
 - Visualizar relatórios semanais detalhados
 - Publicar vídeos automaticamente em múltiplas redes sociais com um único upload (funcionalidade futura)
 
