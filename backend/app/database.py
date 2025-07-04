@@ -1,10 +1,13 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from app.models import RelatorioSocial, TokenSocial, HistoricoSeguidores, Base
 from datetime import datetime, UTC
 import uuid
+from dotenv import load_dotenv
+load_dotenv()
+import os
 
-DATABASE_URL = "postgresql://postgres:Kkkrsrsrs28?@localhost:5432/relatorios_db"
+DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:Kkkrsrsrs28?@localhost:5432/relatorios_db"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -101,5 +104,17 @@ def obter_ultimo_numero_antes(
     )
 
     return resultado.quantidade if resultado else None
-    
-    
+
+
+if __name__ == "__main__":
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        print("✅ Conexão com o banco de dados estabelecida com sucesso!")
+        print(f"usando banco de dados: {DATABASE_URL}")
+    except Exception as e:
+        print("❌ Erro ao conectar ao banco de dados:", e)
+    finally:
+        db.close()
+
+
