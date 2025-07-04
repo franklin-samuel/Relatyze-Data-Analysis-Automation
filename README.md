@@ -1,5 +1,7 @@
 # 📊 Relatyze | Análise de Dados e Automação - Sistema de Relatórios Semanais
 
+https://relatyze-data-analysis-automation.onrender.com/docs (Versão inicial da API com apenas Youtube, Facebook e Instagram rodando na nuvem) -> Integrando com o frontend...
+
 ## ✨ Visão Geral
 
 Este sistema tem como objetivo automatizar a geração de relatórios semanais de desempenho de contas em redes sociais. O usuário poderá:
@@ -38,6 +40,7 @@ Este sistema tem como objetivo automatizar a geração de relatórios semanais d
 - **ORM:** SQLAlchemy
 - **Banco de Dados:** PostgreSQL
 - **Autenticação com Google e Meta (OAuth 2.0)**
+- **Nuvem(Render)**
 
 ### Frontend
 - **Plataforma:** React Native Web (via Expo Web)
@@ -46,15 +49,8 @@ Este sistema tem como objetivo automatizar a geração de relatórios semanais d
 ---
 
 ## 📦 Status Atual
-
-- ✅ Modelos de dados prontos
-- ✅ Conexão com PostgreSQL funcionando
-- ✅ CRUD implementado no `database.py`
-- ✅ Estrutura da aplicação definida
-- ✅ Preparação para integração com APIs externas iniciada
-- ⏳ Core em desenvolvimento
-- 🚧 Integração com YouTube e Meta em progresso
-- 🔜 Upload de vídeo único para múltiplas redes será implementado
+- ⏳ Criando o frontend e conectando a nossa API locada na nuvem(Render)
+  
 
 ---
 
