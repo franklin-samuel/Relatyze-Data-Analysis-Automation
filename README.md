@@ -17,8 +17,10 @@ Este sistema tem como objetivo automatizar a geração de relatórios semanais d
 - 🔌 Integração com APIs externas:
   - Instagram/Facebook (Meta Graph API)
   - YouTube Shorts (YouTube Data API)
+  - Threads (Threads API)
+  - TikTok (TikTok API)
 - 📝 Inserção manual de dados para plataformas sem API:
-  - TikTok, Kwai, Threads
+  - Kwai
 - 🧾 Relatórios incluem:
   - Seguidores (início e fim da semana)
   - Total de publicações
