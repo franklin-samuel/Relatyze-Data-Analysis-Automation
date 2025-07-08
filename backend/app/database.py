@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:Kkkrsrsrs28?@localhost:5432/relatorios_db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -110,10 +110,10 @@ if __name__ == "__main__":
     try:
         db = SessionLocal()
         db.execute(text("SELECT 1"))
-        print("✅ Conexão com o banco de dados estabelecida com sucesso!")
+        print("Conexão com o banco de dados estabelecida com sucesso!")
         print(f"usando banco de dados: {DATABASE_URL}")
     except Exception as e:
-        print("❌ Erro ao conectar ao banco de dados:", e)
+        print("Erro ao conectar ao banco de dados:", e)
     finally:
         db.close()
 
