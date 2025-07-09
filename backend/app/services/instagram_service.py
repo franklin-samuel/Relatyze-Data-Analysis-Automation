@@ -186,4 +186,3 @@ def obter_relatorio_semanal_instagram():
         "engajamento_medio": round(engajamento_medio, 2)
     }
 
-print(obter_relatorio_semanal_instagram())

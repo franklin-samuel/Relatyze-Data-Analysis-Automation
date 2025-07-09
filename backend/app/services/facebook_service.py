@@ -156,5 +156,3 @@ def obter_relatorio_semanal_facebook():
         "alcance_total": alcance,
         "engajamento_medio": round(engajamento_medio, 2)
     }
-
-print(obter_relatorio_semanal_facebook())

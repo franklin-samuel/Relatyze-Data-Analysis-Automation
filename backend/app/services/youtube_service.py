@@ -211,4 +211,3 @@ def obter_relatorio_semanal_youtube():
         "engajamento_medio": engajamento_medio
     }
 
-print(obter_relatorio_semanal_youtube())

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer,  Float, Date, Enum, DateTime
+from sqlalchemy import Column, String, Integer, Time, Float, Date, Enum, DateTime, Text, Boolean
 from datetime import datetime, UTC
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
@@ -42,3 +42,11 @@ class HistoricoSeguidores(Base):
     quantidade = Column(Integer, nullable=False)
     coletado_em = Column(DateTime(timezone=True), nullable=False)
 
+class Agendamento(Base):
+    __tablename__ = "agendamentos"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dia_semana = Column(Integer, nullable=False)
+    hora = Column(Time, nullable=False)
+    numero_whatsapp = Column(Text, nullable=False)
+    ativo = Column(Boolean, default=True)

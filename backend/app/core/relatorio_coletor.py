@@ -12,3 +12,4 @@ def coletar_relatorio_geral():
         "facebook": facebook,
         "youtube": youtube
     }
+
