@@ -136,7 +136,3 @@ if __name__ == "__main__":
         print("Erro ao conectar ao banco de dados:", e)
     finally:
         db.close()
-
- 
-
-

@@ -2,6 +2,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from app.core.relatorio_coletor import coletar_relatorio_geral
+from datetime import datetime
+
+def gerar_nome_pdf():
+    hoje = datetime.now()
+    semana = hoje.strftime("semana_%Y-%W")
+    nome = f"relatorio_{semana}.pdf"
+    return nome
 
 def gerar_pdf_relatorio() -> BytesIO:
     dados = coletar_relatorio_geral()
@@ -31,5 +38,7 @@ def gerar_pdf_relatorio() -> BytesIO:
     c.save()
     buffer.seek(0)
     return buffer
+
+
         
 
