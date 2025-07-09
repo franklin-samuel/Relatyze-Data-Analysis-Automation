@@ -4,6 +4,7 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from app.core.relatorio_coletor import coletar_relatorio_geral
 from datetime import datetime
+from fastapi.responses import StreamingResponse
 
 PASTA_PDFS = "C:\Users\samue\Documents\Relatórios Semanais PDFs"
 
@@ -52,6 +53,9 @@ def gerar_pdf_relatorio() -> tuple[BytesIO, str]:
     buffer.seek(0)
     return buffer, nome_arquivo
 
+def baixar_relatorio():
+    pdf_buffer, nome_arquivo = gerar_pdf_relatorio()
+    return StreamingResponse(pdf_buffer, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"})
 
         
 
