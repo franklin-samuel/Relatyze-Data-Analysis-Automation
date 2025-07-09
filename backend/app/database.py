@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
-from app.models import RelatorioSocial, TokenSocial, HistoricoSeguidores, Base
+from app.models import RelatorioSocial, TokenSocial, HistoricoSeguidores, Agendamento, Base
 from datetime import datetime, UTC
 import uuid
 from dotenv import load_dotenv
@@ -105,6 +105,26 @@ def obter_ultimo_numero_antes(
 
     return resultado.quantidade if resultado else None
 
+#-----|Banco de dados -> Agendamento|-----
+def salvar_agendamento(db: Session, dia_semana: int, hora, numero_whatsapp: str):
+    agendamento = Agendamento(
+        dia_semana=dia_semana,
+        hora=hora,
+        numero_whatsapp=numero_whatsapp
+    )
+    db.add(agendamento)
+    db.commit()
+    db.refresh(agendamento)
+    return agendamento
+
+def obter_agendamentos_ativos(db: Session):
+    return db.query(Agendamento).filter_by(ativo=True).all()
+
+def remover_agendamento(db: Session, agendamento_id: uuid.UUID):
+    agendamento = db.query(Agendamento).filter_by(id=agendamento_id).first()
+    if agendamento:
+        db.delete(agendamento)
+        db.commit()
 
 if __name__ == "__main__":
     try:
@@ -116,5 +136,7 @@ if __name__ == "__main__":
         print("Erro ao conectar ao banco de dados:", e)
     finally:
         db.close()
+
+ 
 
 
