@@ -95,7 +95,6 @@ def renovar_token_longo_prazo(token_atual: str) -> str | None:
         print(f"Erro ao renovar token: {response.status_code} - {response.text}")
         return None
 
-
 def token_expirou(token: str) -> bool:
     url = f"https://graph.facebook.com/debug_token"
     params = {
