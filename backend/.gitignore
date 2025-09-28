@@ -7,3 +7,4 @@ venv/
 .idea/
 *.db
 .env
+app/config.py
