@@ -10,3 +10,5 @@ python-dateutil
 uuid
 rich
 python-dotenv
+TiktokApi
+playwright
